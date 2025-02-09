@@ -1,0 +1,4 @@
+netifaces
+requests
+rich
+scapy
