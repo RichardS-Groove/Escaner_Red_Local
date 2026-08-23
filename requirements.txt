@@ -2,3 +2,6 @@ netifaces
 requests
 rich
 scapy
+flask
+flask-cors
+python-nmap

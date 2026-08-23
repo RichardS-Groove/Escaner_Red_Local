@@ -1,88 +1,141 @@
+# 🌐 Escáner de Red Local — Guía de Uso
 
-# 🔍 **Network Device Scanner – IoT Security Audit**
+## ¿Qué es esto?
 
-## 🚀 **Project Overview**  
-
-This project is a **network scanning tool** designed to identify **IP cameras, printers, and IoT devices** on a local network. It helps assess **security risks** by detecting potentially vulnerable devices and open ports.  
-
-### 🎯 **Key Features**  
-
-- **Detect IoT devices** (IP cameras, printers, smart home devices...)  
-- **Retrieve manufacturer details** based on MAC address  
-- **Identify open ports** on detected devices  
-- **Fast and optimized network scanning** using ARP requests  
-- **Multithreaded scanning** for better performance  
-- **Export results in JSON format**  
+Un escáner de red local premium que descubre **todos los dispositivos** conectados a tu red:
+- IPs, MACs, fabricantes
+- Hostname, puertos abiertos
+- Identificación automática de routers **Ruijie**, IoT, PCs, cámaras, etc.
+- Dashboard web tipo **Colasoft MAC Scanner Pro**
 
 ---
 
-## 🏗 **Project Architecture**  
+## Instalación rápida
 
-- **ARP-based Device Discovery** 🔍  
-  - Identifies connected devices on the network  
-  - Retrieves associated MAC and IP addresses  
+### Requisitos
+- Python 3.8 o superior
+- **Npcap** (para Windows) → [descargar aquí](https://npcap.com/#download)
+- Correr como **Administrador** (necesario para escaneo ARP)
 
-- **Vendor Lookup & IoT Detection** 📡  
-  - Queries known manufacturer databases  
-  - Identifies devices from IoT vendors 
+### Paso 1 — Instalar Npcap (solo Windows, una vez)
+Descarga e instala desde: https://npcap.com/#download
 
-- **Port Scanning** 🔓  
-  - Scans for common open ports and can be tweaked (22, 80, 443, 3389, 53, 445)  
-  - Helps assess potential security risks  
+### Paso 2 — Instalar dependencias Python
+```bash
+pip install flask flask-cors scapy netifaces requests rich
+```
 
-- **Results Visualization & Export** 📄  
-  - Displays structured results in a table
-  - Option to export data in **JSON format**  
+### Paso 3 — Correr el escáner
+**Clic derecho → "Ejecutar como administrador"** en PowerShell, luego:
+```bash
+python run.py
+```
 
----
-
-## 📜 **Prerequisites**  
-
-### 🛠 **System Requirements**  
-
-- **OS**: Linux
-- **Python 3.8+** installed  
-- **Administrator privileges** to scan the network  
-
-### 📦 **Required Libraries**  
-
-- `scapy` (network packet analysis)  
-- `netifaces` (network interface management)  
-- `requests` (API calls for vendor lookup)  
-- `rich` (beautiful terminal tables)  
-- `concurrent.futures` (multithreading for faster scans)  
-
-Install dependencies:  
-
-    pip install -r requirements.txt
+El navegador se abrirá automáticamente en `http://localhost:5050`
 
 ---
 
-## 🚀 **Usage**  
+## 💻 Guía de Uso paso a paso (Nivel Usuario)
 
-    sudo python3 main.py
+### 1. ¿Cómo inicio el sistema?
+1. Abre el menú inicio de Windows, escribe **PowerShell**.
+2. Dale clic derecho y selecciona **"Ejecutar como administrador"**.
+3. Navega a la carpeta del proyecto escribiendo:
+   ```bash
+   cd "C:\Users\richa\Music\Escaner Red"
+   ```
+4. Inicia el sistema ejecutando:
+   ```bash
+   python run.py
+   ```
+*Nota: Si te pregunta si quieres permisos de administrador, dile que sí.*
+
+### 2. ¿Cómo veo el frontend (la interfaz)?
+Si usaste `python run.py`, **el navegador se abrirá automáticamente** mostrando el dashboard.
+Si no se abre, o lo cerraste por error, simplemente abre tu navegador (Chrome, Edge, etc.) y entra a esta dirección:
+👉 **http://localhost:5050**
+
+### 3. ¿Cómo usar el escáner?
+1. En el dashboard, la red se **detecta automáticamente** (ej: `192.168.1.0/24`).
+2. Presioná el botón **"Escanear Red"**.
+3. Esperá a que la barra de progreso termine.
+4. Los dispositivos aparecerán en la tabla. **Tu router Ruijie** se destacará en verde ⭐.
+*Si querés escanear el segmento 10, borrá el texto automático y escribí `192.168.10.0/24` antes de darle a escanear.*
+
+### 4. ¿Cómo paro o apago el servidor?
+Para apagar el servidor y dejar de usar el escáner:
+1. Ve a la ventana azul de **PowerShell** donde escribiste el comando.
+2. Presiona las teclas **`Ctrl + C`** al mismo tiempo.
+3. Verás un mensaje que dice `[✓] Servidor detenido. ¡Hasta luego!`. Ya puedes cerrar la ventana.
+
+### 4.b. ¿Cómo REINICIAR el servidor?
+Si hiciste cambios o la página se quedó trabada y necesitas reiniciar el servidor:
+1. Ve a la ventana de **PowerShell** y presiona **`Ctrl + C`** para pararlo.
+2. Una vez que se detenga, simplemente vuelve a escribir el comando para iniciarlo:
+   ```bash
+   python run.py
+   ```
+3. Refresca la página en tu navegador (`F5`).
+
+### 5. ¿Qué pasa si el puerto ya está en uso? (Matar procesos huérfanos)
+Si al intentar iniciar el sistema te da un error diciendo que el puerto `5050` está en uso (esto pasa si cerraste la ventana sin presionar `Ctrl + C`), puedes "matar" el proceso anterior para no pisarlo:
+
+**Desde PowerShell (como administrador):**
+```bash
+Stop-Process -Id (Get-NetTCPConnection -LocalPort 5050).OwningProcess -Force
+```
+Y luego vuelve a iniciar con `python run.py`.
 
 ---
 
-## 📊 **Example Output**  
+## Estructura del proyecto
 
-| IP Address   | MAC Address        | Vendor       | Open Ports   | IoT Device |
-|-------------|------------------|-------------|------------|------------|
-| 192.168.1.10 | 00:1A:2B:3C:4D:5E | TP-Link     | 80, 443    | ✅ Yes     |
-| 192.168.1.15 | 11:22:33:44:55:66 | HP          | 9100       | ❌ No      |
-| 192.168.1.20 | AA:BB:CC:DD:EE:FF | Netgear     | 22, 445    | ✅ Yes     |
+```
+Escaner Red/
+├── main.py          ← Scanner original (conservado)
+├── scanner.py       ← Scanner mejorado (nuevo)
+├── api.py           ← Servidor Flask REST + SSE
+├── run.py           ← Lanzador unificado
+├── requirements.txt
+├── static/
+│   ├── index.html   ← Dashboard web premium
+│   ├── style.css    ← Diseño dark glassmorphism
+│   └── app.js       ← Lógica frontend
+└── results/
+    ├── devices.json ← Último escaneo (JSON)
+    └── devices.csv  ← Último escaneo (CSV)
+```
 
 ---
 
-## ⚠️ **Legal Disclaimer**  
+## Endpoints API disponibles
 
-This tool is intended for **educational and cybersecurity research purposes only**. Unauthorized network scanning may be **illegal** and is strictly prohibited.  
-
-By using this software, you agree to comply with **all applicable laws and regulations**. The author assumes **no responsibility** for misuse.  
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/` | Dashboard web |
+| GET | `/api/interfaces` | Interfaces de red detectadas |
+| POST | `/api/scan` | Iniciar escaneo |
+| GET | `/api/status` | Estado del escaneo |
+| GET | `/api/results` | Resultados completos (JSON) |
+| GET | `/api/stream` | SSE en tiempo real |
+| GET | `/api/export/json` | Descargar resultados JSON |
+| GET | `/api/export/csv` | Descargar resultados CSV |
+| POST | `/api/stop` | Detener escaneo |
 
 ---
 
-## 👨‍💻 **Author & License**  
+## Solución de problemas
 
-💻 **Author**: [HackTheVoid](https://github.com/hack-the-void)  
-📌 **License**: MIT  
+**"No devices found"** → Asegurate de correr como Administrador y que Npcap esté instalado.
+
+**"Scapy import error"** → Instala Npcap desde https://npcap.com
+
+**El router Ruijie no aparece** → Puede que esté en otra subred. Probá manualmente con `192.168.0.0/24` o `192.168.1.0/24`.
+
+---
+
+## Créditos y Licencia
+
+**Diseñado por Richard Campos - PMO**
+
+Este proyecto se distribuye bajo una **Licencia Abierta de Uso General**. Eres libre de usar, modificar y distribuir este software para cualquier propósito, comercial o no comercial, siempre y cuando se mantenga el reconocimiento al autor original.

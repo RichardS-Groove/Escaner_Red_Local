@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Escáner de Red Local — Detecta dispositivos, IPs, MACs y fabricantes en tu red local. Ideal para routers Ruijie y cualquier otro equipo." />
+  <title>Escáner de Red Local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ═══ HEADER ══════════════════════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="url(#grad1)" stroke-width="2"/>
+            <circle cx="20" cy="20" r="4" fill="url(#grad1)"/>
+            <path d="M20 8 Q28 14 28 20 Q28 26 20 32 Q12 26 12 20 Q12 14 20 8Z" stroke="url(#grad1)" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <line x1="2" y1="20" x2="38" y2="20" stroke="url(#grad1)" stroke-width="1.5" opacity="0.6"/>
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title">Escáner de Red</h1>
+          <p class="logo-sub">Network IP &amp; MAC Discovery</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Cambiar tema claro/oscuro">
+          <span class="theme-icon" id="themeIcon">☀️</span>
+        </button>
+        <div class="net-badge" id="netBadge">
+          <span class="net-dot"></span>
+          <span id="netLabel">Detectando red...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ════════════════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Panel de Control -->
+    <section class="control-panel glass-card">
+      <div class="control-top">
+        <div class="field-group">
+          <label class="field-label" for="networkInput">Rango de red (CIDR)</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zM4.5 10a5.5 5.5 0 1111 0 5.5 5.5 0 01-11 0z"/>
+            </svg>
+            <input id="networkInput" class="field-input" type="text"
+              placeholder="Ej: 192.168.1.0/24 (auto-detectado)" />
+          </div>
+        </div>
+        <div class="btn-group">
+          <button id="btnScan" class="btn btn-primary" onclick="startScan()">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.3 9.24a.75.75 0 00-1.06 1.06l3.25 3.25a.75.75 0 001.06 0l3.25-3.25a.75.75 0 10-1.06-1.06l-1.95 2.1V6.75z" clip-rule="evenodd"/>
+            </svg>
+            Escanear Red
+          </button>
+          <button id="btnScanRuijie" class="btn btn-outline" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3)" onclick="startScan('10.44.77.0/24')">
+            ⭐ Buscar Ruijie (10.44.x.x)
+          </button>
+          <button id="btnStop" class="btn btn-danger hidden" onclick="stopScan()">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm8-3.5a.75.75 0 01.75.75v5.5a.75.75 0 01-1.5 0v-5.5A.75.75 0 0110 6.5z" clip-rule="evenodd"/>
+            </svg>
+            Detener
+          </button>
+          <button id="btnExportJson" class="btn btn-outline hidden" onclick="exportData('json')">
+            ↓ JSON
+          </button>
+          <button id="btnExportCsv" class="btn btn-outline hidden" onclick="exportData('csv')">
+            ↓ CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="progress-wrapper" id="progressWrapper" style="display:none">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-msg" id="progressMsg">Iniciando...</p>
+      </div>
+    </section>
+
+    <!-- Estadísticas -->
+    <section class="stats-row" id="statsRow" style="display:none">
+      <div class="stat-card glass-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Dispositivos</div>
+      </div>
+      <div class="stat-card glass-card">
+        <div class="stat-value accent-green" id="statRouters">0</div>
+        <div class="stat-label">Routers</div>
+      </div>
+      <div class="stat-card glass-card">
+        <div class="stat-value accent-blue" id="statComputers">0</div>
+        <div class="stat-label">PCs / Servers</div>
+      </div>
+      <div class="stat-card glass-card">
+        <div class="stat-value accent-orange" id="statIot">0</div>
+        <div class="stat-label">IoT / Cámaras</div>
+      </div>
+      <div class="stat-card glass-card">
+        <div class="stat-value accent-purple" id="statNetwork">—</div>
+        <div class="stat-label">Red escaneada</div>
+      </div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filter-bar glass-card" id="filterBar" style="display:none">
+      <div class="filter-search-wrapper">
+        <svg class="filter-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/>
+        </svg>
+        <input id="filterInput" class="filter-input" type="text"
+          placeholder="Buscar por IP, MAC, fabricante, hostname..." oninput="applyFilter()" />
+      </div>
+      <div class="filter-chips">
+        <button class="chip chip-active" data-type="all" onclick="setTypeFilter('all', this)">Todos</button>
+        <button class="chip" data-type="router" onclick="setTypeFilter('router', this)">🌐 Routers</button>
+        <button class="chip" data-type="computer" onclick="setTypeFilter('computer', this)">💻 PCs</button>
+        <button class="chip" data-type="iot" onclick="setTypeFilter('iot', this)">📡 IoT</button>
+        <button class="chip" data-type="camera" onclick="setTypeFilter('camera', this)">📷 Cámaras</button>
+        <button class="chip" data-type="printer" onclick="setTypeFilter('printer', this)">🖨 Impresoras</button>
+        <button class="chip" data-type="server" onclick="setTypeFilter('server', this)">🖥 Servers</button>
+        <button class="chip" data-type="unknown" onclick="setTypeFilter('unknown', this)">❓ Otros</button>
+      </div>
+    </section>
+
+    <!-- Tabla de resultados -->
+    <section class="results-section" id="resultsSection" style="display:none">
+      <div class="table-wrapper glass-card">
+        <table class="device-table" id="deviceTable">
+          <thead>
+            <tr>
+              <th class="th-type"></th>
+              <th class="th-ip" onclick="sortBy('ip')">IP <span class="sort-icon">⇅</span></th>
+              <th onclick="sortBy('mac')">MAC Address <span class="sort-icon">⇅</span></th>
+              <th onclick="sortBy('vendor')">Fabricante <span class="sort-icon">⇅</span></th>
+              <th>Hostname</th>
+              <th>Puertos Abiertos</th>
+              <th>Tipo</th>
+            </tr>
+          </thead>
+          <tbody id="deviceBody">
+          </tbody>
+        </table>
+        <p class="no-results hidden" id="noResults">Sin resultados para el filtro aplicado.</p>
+      </div>
+    </section>
+
+    <!-- Estado vacío -->
+    <section class="empty-state" id="emptyState">
+      <div class="empty-icon">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="36" stroke="url(#eg1)" stroke-width="2" opacity="0.3"/>
+          <circle cx="40" cy="40" r="24" stroke="url(#eg1)" stroke-width="2" opacity="0.5"/>
+          <circle cx="40" cy="40" r="12" stroke="url(#eg1)" stroke-width="2" opacity="0.7"/>
+          <circle cx="40" cy="40" r="4" fill="url(#eg1)"/>
+          <defs>
+            <linearGradient id="eg1" x1="0" y1="0" x2="80" y2="80">
+              <stop offset="0%" stop-color="#00d4ff"/>
+              <stop offset="100%" stop-color="#7c3aed"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h2 class="empty-title">Listo para escanear</h2>
+      <p class="empty-sub">Presioná <strong>Escanear Red</strong> para descubrir todos los dispositivos conectados,<br/>incluyendo tu router Ruijie, IPs, MACs y mucho más.</p>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <p>Diseñado por Richard Campos - PMO</p>
+  </footer>
+
+  <!-- ═══ DEVICE DETAIL MODAL ══════════════════════════════════════════════ -->
+  <div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-card glass-card" id="modalCard">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
