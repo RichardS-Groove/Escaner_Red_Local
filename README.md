@@ -138,4 +138,6 @@ Escaner Red/
 
 **Diseñado por Richard Campos - PMO**
 
+Un agradecimiento especial a **[@hack-the-void](https://github.com/hack-the-void)**, cuyo proyecto *Advanced-ARP-Scanner* sirvió como base inspiracional inicial para el motor de escaneo de esta herramienta.
+
 Este proyecto se distribuye bajo una **Licencia Abierta de Uso General**. Eres libre de usar, modificar y distribuir este software para cualquier propósito, comercial o no comercial, siempre y cuando se mantenga el reconocimiento al autor original.
